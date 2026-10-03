@@ -4,6 +4,14 @@ Herramienta web para **gestionar solicitudes de devolución** de una academia on
 Es una versión de demostración, reescrita desde cero, de una herramienta interna en la que trabajé.
 **Todos los datos son inventados** (la academia "Academia Nova", los alumnos y los emails `@example.com`).
 
+**▶ Pruébala en vivo: <https://richiespa-ai.github.io/devoluciones-demo/>**
+
+![Resumen con indicadores y gráficas](docs/img/resumen.png)
+
+| Solicitudes | Reporting |
+|---|---|
+| ![Tabla de solicitudes](docs/img/solicitudes.png) | ![Reporting por escuela y mes](docs/img/reporting.png) |
+
 ## Qué hace
 
 - **Resumen**: indicadores del año (ventas, solicitudes, importe devuelto, % de retención) y cuatro gráficas.
@@ -35,6 +43,14 @@ Navegador ──(fetch /api/...)──▶ FastAPI ──(SQL)──▶ SQLite (d
     └──── HTML/CSS/JS (static/) ◀──┘
 ```
 
+## Dos formas de ejecutarla
+
+- **Completa (local o Docker)**: el navegador habla con la API de FastAPI y los datos viven en SQLite.
+- **Versión en vivo (GitHub Pages)**: GitHub Pages solo sirve archivos, no ejecuta Python. Por eso
+  `scripts/build_static.py` exporta los datos a un archivo y `static/mock-api.js` imita la API en el navegador,
+  con las mismas reglas de negocio. Los cambios de cada visitante se guardan solo en su navegador.
+  Un flujo de GitHub Actions pasa los tests y publica esta versión en cada push a `main`.
+
 ## Estructura
 
 ```
@@ -43,8 +59,10 @@ app/
   db.py         Conexión y tablas de SQLite
   catalogos.py  Listas cerradas (escuelas, motivos, estados…)
   seed.py       Genera los datos inventados
-static/         Web: index.html, styles.css, app.js
+static/         Web: index.html, styles.css, app.js (+ mock-api.js para la versión sin servidor)
+scripts/        build_static.py: genera la versión para GitHub Pages
 tests/          Tests de la API
+.github/        Flujo de tests y publicación automática
 ```
 
 ## Cómo arrancarla en local (Windows, PowerShell)
@@ -81,4 +99,4 @@ Documentación interactiva de la API: <http://127.0.0.1:8000/docs>
 - La API valida cada campo contra listas cerradas y limita la longitud de los textos.
 - El frontend pinta los datos con `textContent`, nunca con `innerHTML`: evita que un texto se ejecute como código.
 - Cabeceras de seguridad (Content-Security-Policy, X-Frame-Options…) y contenedor con usuario sin privilegios.
-- No hay claves ni contraseñas: no las necesita. Es una demo pública sin login, así que cualquiera puede editar los datos de prueba.
+- No hay claves ni contraseñas: no las necesita. Es una demo sin login: en la versión en vivo cada visitante solo cambia su copia local de los datos.

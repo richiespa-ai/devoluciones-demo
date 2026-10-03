@@ -13,6 +13,8 @@ const fecha = (iso) => (iso ? iso.split("-").reverse().join("/") : "");
 const pct = (v) => `${num.format(v)} %`;
 
 async function api(path, opts = {}) {
+  // En GitHub Pages no hay servidor: mock-api.js responde con los mismos datos y reglas.
+  if (window.mockApi) return window.mockApi(path, opts);
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
     ...opts,
