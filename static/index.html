@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Devoluciones · demo</title>
+  <meta name="description" content="Demo de una herramienta de gestión y reporting de devoluciones. Datos inventados.">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">↩</span>
+      <div>
+        <h1>Devoluciones</h1>
+        <p class="sub">Academia Nova · gestión y reporting</p>
+      </div>
+    </div>
+    <label class="year">Año
+      <select id="year"></select>
+    </label>
+  </header>
+
+  <p class="banner">Demo con datos inventados. Los cambios que hagas se guardan en la base de datos de la demo.</p>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-view="resumen" aria-selected="true">Resumen</button>
+    <button role="tab" data-view="solicitudes" aria-selected="false">Solicitudes</button>
+    <button role="tab" data-view="nueva" aria-selected="false">Nueva solicitud</button>
+    <button role="tab" data-view="reporting" aria-selected="false">Reporting</button>
+  </nav>
+
+  <main>
+    <!-- RESUMEN -->
+    <section id="view-resumen" class="view">
+      <div class="kpis" id="kpis"></div>
+      <div class="grid2">
+        <div class="card">
+          <h2>Importe devuelto por mes</h2>
+          <div class="chart"><canvas id="ch-mes"></canvas></div>
+        </div>
+        <div class="card">
+          <h2>Resultado de las solicitudes cerradas</h2>
+          <div class="chart"><canvas id="ch-resultado"></canvas></div>
+        </div>
+        <div class="card">
+          <h2>% devuelto sobre ventas, por escuela</h2>
+          <div class="chart"><canvas id="ch-escuela"></canvas></div>
+        </div>
+        <div class="card">
+          <h2>Motivos de solicitud</h2>
+          <div class="chart"><canvas id="ch-motivo"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOLICITUDES -->
+    <section id="view-solicitudes" class="view" hidden>
+      <div class="filters">
+        <input id="f-q" type="search" placeholder="Buscar por email, alumno o nº de pedido" aria-label="Buscar">
+        <select id="f-escuela" aria-label="Escuela"><option value="">Todas las escuelas</option></select>
+        <select id="f-estado" aria-label="Estado"><option value="">Todos los estados</option></select>
+        <span id="f-count" class="muted"></span>
+      </div>
+      <div class="card table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Solicitud</th><th>Pedido</th><th>Alumno</th><th>Escuela</th><th>Motivo</th>
+              <th>Estado</th><th>Resultado</th><th class="num">Devuelto</th><th>Agente</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-sol"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- NUEVA SOLICITUD -->
+    <section id="view-nueva" class="view" hidden>
+      <div class="card narrow">
+        <h2>Nueva solicitud</h2>
+        <p class="muted">Escribe el nº de pedido o el email del alumno y los datos del pedido se rellenan solos.
+          Prueba con el pedido <button type="button" class="link" id="ejemplo-np">100120</button>.</p>
+        <form id="form-nueva" novalidate>
+          <div class="row2">
+            <label>Nº de pedido <input id="n-np" name="np" inputmode="numeric" autocomplete="off" required></label>
+            <label>Email del alumno <input id="n-email" type="email" autocomplete="off"></label>
+          </div>
+          <div id="n-pedidos" class="pick" hidden></div>
+          <dl id="n-info" class="info" hidden></dl>
+          <div class="row2">
+            <label>Origen <select name="origen" id="n-origen" required></select></label>
+            <label>Agente <select name="agente" id="n-agente" required></select></label>
+          </div>
+          <label>Motivo <select name="motivo" id="n-motivo" required></select></label>
+          <label>Detalle <textarea name="detalle" maxlength="500" rows="3"></textarea></label>
+          <p id="n-msg" class="msg" role="status"></p>
+          <button class="primary" type="submit">Crear solicitud</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- REPORTING -->
+    <section id="view-reporting" class="view" hidden>
+      <div class="card table-wrap">
+        <h2>Por escuela</h2>
+        <table id="tbl-rep-escuela"></table>
+      </div>
+      <div class="card table-wrap">
+        <h2>Importe devuelto por escuela y mes</h2>
+        <table id="tbl-rep-mes"></table>
+      </div>
+      <p class="muted note">Ventas y pedidos por fecha de compra · solicitudes por fecha de solicitud · importe devuelto por fecha de reembolso.</p>
+    </section>
+  </main>
+
+  <!-- EDITAR SOLICITUD -->
+  <dialog id="dlg">
+    <form id="form-edit" method="dialog">
+      <header class="dlg-head">
+        <h2 id="e-title">Solicitud</h2>
+        <button type="button" class="icon" id="e-close" aria-label="Cerrar">✕</button>
+      </header>
+      <dl id="e-info" class="info"></dl>
+      <div class="row2">
+        <label>Estado <select name="estado" id="e-estado"></select></label>
+        <label>Resultado <select name="accion" id="e-accion"></select></label>
+      </div>
+      <div class="row2">
+        <label>Importe devuelto (€) <input name="importe_devuelto" id="e-importe" type="number" step="0.01" min="0"></label>
+        <label>Agente <select name="agente" id="e-agente"></select></label>
+      </div>
+      <label>Motivo <select name="motivo" id="e-motivo"></select></label>
+      <label>Comentario <textarea name="comentario" id="e-comentario" maxlength="500" rows="3"></textarea></label>
+      <p id="e-msg" class="msg" role="status"></p>
+      <div class="dlg-actions">
+        <button type="button" id="e-cancel">Cancelar</button>
+        <button type="submit" class="primary" id="e-save">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
